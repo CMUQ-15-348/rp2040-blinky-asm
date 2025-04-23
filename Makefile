@@ -23,6 +23,7 @@ main.elf: bs2.o vector_table.o main.o
 	$(CC) $(LFLAGS) -o $@ $^
 
 run: main.elf
+	@echo "Flashing and running program.  Press ctrl-c to quit"
 	probe-rs run --chip RP2040 --protocol swd main.elf
 
 clean:
