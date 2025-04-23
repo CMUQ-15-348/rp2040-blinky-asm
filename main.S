@@ -4,32 +4,33 @@
 .thumb_func
 .global main
 
+.equ    CLOCKS_BASE,    0x40008000
+.equ    CLK_REF_OFFSET,    0x30
+.equ    CLK_SYS_OFFSET,    0x3c
+
 .equ    PADS_BANK0_BASE,0x4001c000
 .equ    IO_BANK0_BASE,  0x40014000
 .equ    SIO_BASE,       0xd0000000
 .equ    RESETS_BASE,    0x4000c000
 .equ    RESETS_BASE_CLR,0x4000f000
-.equ    CLOCKS_BASE,    0x40008000
-.equ    CLOCKS_BASE_CLK_REF,    0x40008030
-.equ    CLOCKS_BASE_CLK_SYS,    0x4000803c
 
 .equ    PADS_BANK0_GPIO25,  0x68 @ Offset for GPIO 25 pad control register
 .equ    GPIO_25_CTRL,   0x0CC    @ Offset for GPIO 25 control register
 
 .equ    DELAY_COUNT,    0x001FFFFF  @ Delay duration
 
-.equ    BIGF,           0xFFFFFFFF
 
 main:
     // Reset the clock source to be the default on powerup: Ring oscillator.
+    // Why?  Because if you program this over the debug probe, and it was previously
+    // running a program that properly configured the clock, your delay will be too slow.
     // CLK_REF glitchless mux to ring oscillator
-    ldr r0, =CLOCKS_BASE_CLK_REF
+    ldr r0, =CLOCKS_BASE
     movs r1, #0
-    str r1, [r0, #0]
+    str r1, [r0, #CLK_REF_OFFSET]
     // CLK_SYS glitchless mux to CLK_REF
-    ldr r0, =CLOCKS_BASE_CLK_SYS
     movs r1, #0
-    str r1, [r0, #0]
+    str r1, [r0, #CLK_SYS_OFFSET]
 
     // Enable IO_BANK0
 	ldr r0, =RESETS_BASE_CLR	// atomic register for clearing reset controller (0x4000c000+0x3000) 
