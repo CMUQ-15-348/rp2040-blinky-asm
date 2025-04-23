@@ -26,7 +26,6 @@ run: main.elf
 	probe-rs run --chip RP2040 --protocol swd main.elf
 
 clean:
-	-rm -f $(wildcard *.o)  
-	-rm -f $(wildcard *.elf) 
-	-rm -f $(wildcard *.uf2)
+	-rm -f $(wildcard *.o)
+	-rm -f $(wildcard *.elf)	
 	-rm -f $(wildcard *.map)
