@@ -1,8 +1,3 @@
-/* Life with David BMA04 - linker script
-   Bootloader 2 goes to FLASH at 0x10000000, vector table at 0x10000100, "reset" at 0x10000200
-   Slightly modified for 15-348 at CMU in Qatar.
-*/
-
 MEMORY
 {
     FLASH(rx) : ORIGIN = 0x10000000, LENGTH = 2048k
@@ -11,19 +6,16 @@ MEMORY
     SCRATCH_Y(rwx) : ORIGIN = 0x20041000, LENGTH = 4k
 }
 
-ENTRY(main)
-
 SECTIONS
 {
- /* Second stage bootloader is prepended to the image. It must be 256 bytes big
-  * and checksummed. It is usually built by the boot_stage2 target
-  * in the Raspberry Pi Pico SDK
-  */
-
     .flash_begin : {
         __flash_binary_start = .;
     } > FLASH
 
+    /* The stage 2 bootloader.  This sets up the flash chip a bit and then jumps
+     * to an entry in the vector table.
+     * This is at 0x10000000 (the start of the flash memory)
+     */
     .boot2 : {
         __boot2_start__ = .;
         KEEP (*(.boot2))
@@ -33,21 +25,35 @@ SECTIONS
     ASSERT(__boot2_end__ - __boot2_start__ == 256,
         "ERROR: Pico second stage bootloader must be 256 bytes in size")
 
-    /* The second stage will always enter the image at the start of .text.
-     * The debugger will use the entry point, which we defined as main above.     
-     * This can be used to transfer control back to the bootrom on debugger
-     * launches only, to perform proper flash setup.
+    /* After the second stage bootloader, we place the vector table.
+     * This contains an initial stack pointer, the initial code entry point,
+     * and the interrupt table.
+     * The second stage bootloader loads the stack pointer out of the first
+     * entry in the vector table and then jumps to the location specified in
+     * the second entry of the vector table.
+     * This is at 0x10000100 (boot2_start + 256 bytes)
      */
-
-    .text : {
-        __logical_binary_start = .;
+     .vectors : {
+        __vectors_start__ = .;
         KEEP (*(.vectors))
-        KEEP (*(.binary_info_header))
-        __binary_info_header_end = .;
-		. = __logical_binary_start + 0x100;
-        KEEP (*(.reset))
-		} > FLASH	
+        __vectors_end__ = .;
+     } > FLASH
+
+    ASSERT(__vectors_end__ - __vectors_start__ == 192,
+        "ERROR: Vector table must be 192 bytes in size")
+
+    /* The actual code. It gets linked in from main.o because main.o has a 
+     * section named .text and so gets pulled in here.
+     * This should start at 0x10000200, but we need to manually force it.
+     */
+    .text : {
+        /* Force the location of .text to be 256 bytes after the vector table.
+         * (Location 0x10000200) 
+         */
+        . = __vectors_start__ + 0x100;
+	} > FLASH	
 		
+    /* Any read-only (constant) variables */
 	.rodata : {
         . = ALIGN(4);
         *(.rodata*)
@@ -55,11 +61,11 @@ SECTIONS
         *(SORT_BY_ALIGNMENT(SORT_BY_NAME(.flashdata*)))
         . = ALIGN(4);
     } > FLASH
-	
-	.ram_vector_table (COPY): {
-        *(.ram_vector_table)
-    } > RAM
 
+    /* Mutable variables that have initial values.
+    * They start in flash (the initial values) but are copied
+    * to RAM so that they can be modified at runtime.
+    */
     .data : {
         __data_start__ = .;
 		
@@ -67,8 +73,11 @@ SECTIONS
 		 . = ALIGN(4);
         __data_end__ = .;
     } > RAM AT> FLASH
-	
-	
+
+    /* Mutable variables that don't have initial values.
+     * They are allocated in RAM. On most systems, the entire BSS is
+     * initialized to 0s, but you shouldn't rely on that.
+     */	
     .bss  : {
         . = ALIGN(4);
         __bss_start__ = .;
@@ -77,7 +86,10 @@ SECTIONS
         . = ALIGN(4);
         __bss_end__ = .;
     } > RAM
-	
+
+    /* Space for the heap, if used.
+     * Right now we aren't using this for anything.
+     */
     .heap (COPY):
     {
         __end__ = .;
