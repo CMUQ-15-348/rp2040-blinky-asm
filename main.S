@@ -2,7 +2,7 @@
 .cpu cortex-m0plus
 
 .thumb_func
-.global start
+.global main
 
 .equ    CLOCKS_BASE,    0x40008000
 .equ    CLK_REF_OFFSET,    0x30
@@ -19,8 +19,7 @@
 
 .equ    DELAY_COUNT,    0x001FFFFF  @ Delay duration
 
-
-start:
+main:
     // Reset the clock source to be the default on powerup: Ring oscillator.
     // Why?  Because if you program this over the debug probe, and it was previously
     // running a program that properly configured the clock, your delay will be too slow.

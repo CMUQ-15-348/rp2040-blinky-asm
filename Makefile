@@ -8,7 +8,7 @@ MACH=cortex-m0plus
 CFLAGS= -c -mcpu=$(MACH) -mthumb -std=gnu11 -Wall -O0 
 LFLAGS= -nostdlib -T memmap.ld -Wl,-Map=final.map
 
-all: bs2.o main.o vector_table.o
+all: bs2.o main.o vector_table.o reset.o
 
 main.o: main.S
 	$(CC) $(CFLAGS) -o $@ $^
@@ -17,9 +17,12 @@ bs2.o: bs2.S
 	$(CC) $(CFLAGS) -o $@ $^
 	
 vector_table.o: vector_table.S
-	$(CC) $(CFLAGS) -o $@ $^		
+	$(CC) $(CFLAGS) -o $@ $^
 	
-main.elf: bs2.o vector_table.o main.o 
+reset.o: reset.S
+	$(CC) $(CFLAGS) -o $@ $^
+
+main.elf: bs2.o vector_table.o main.o reset.o
 	$(CC) $(LFLAGS) -o $@ $^
 
 run: main.elf

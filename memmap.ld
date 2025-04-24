@@ -42,15 +42,22 @@ SECTIONS
     ASSERT(__vectors_end__ - __vectors_start__ == 192,
         "ERROR: Vector table must be 192 bytes in size")
 
-    /* The actual code. It gets linked in from main.o because main.o has a 
-     * section named .text and so gets pulled in here.
-     * This should start at 0x10000200, but we need to manually force it.
-     */
-    .text : {
-        /* Force the location of .text to be 256 bytes after the vector table.
-         * (Location 0x10000200) 
+    .reset : {
+        /* Bring in the reset code and force the location of it to be 256 bytes
+         * after the vector table, location 0x10000200.
+         * There are 64 bytes of "dead space" after the
+         * the vector table, but before the code.  For now, we don't use it,
+         * but we could put a silly interrupt handler there if we wanted.
          */
         . = __vectors_start__ + 0x100;
+        KEEP (*(.reset))
+    } > FLASH
+
+    /* The rest of the code. It gets linked in from main.o because main.o has a 
+     * section named .text and so gets pulled in here.
+     */
+    .text : {        
+        KEEP (*(.text))
 	} > FLASH	
 		
     /* Any read-only (constant) variables */
