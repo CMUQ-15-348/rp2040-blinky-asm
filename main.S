@@ -20,9 +20,11 @@
 .equ    DELAY_COUNT,    0x001FFFFF  @ Delay duration
 
 main:
+    ////////////////////
     // Reset the clock source to be the default on powerup: Ring oscillator.
     // Why?  Because if you program this over the debug probe, and it was previously
     // running a program that properly configured the clock, your delay will be too slow.
+
     // CLK_REF glitchless mux to ring oscillator
     ldr r0, =CLOCKS_BASE
     movs r1, #0
@@ -31,16 +33,19 @@ main:
     movs r1, #0
     str r1, [r0, #CLK_SYS_OFFSET]
 
-    // Enable IO_BANK0
-	ldr r0, =RESETS_BASE_CLR	// atomic register for clearing reset controller (0x4000c000+0x3000) 
-	movs r1, #1
-    lsls r1, r1, #5     // load a 1 into bit 5
-	str r1, [r0, #0] 	// store the bitmask into the atomic register to clear register
-    // Enable PADS_BANK0
+    ////////////////////
+    // Pull IO_BANK0 and PADS_BANK0 out of reset
+    ldr r0, =RESETS_BASE_CLR	// atomic register for clearing reset controller (0x4000c000+0x3000) 
+    // IO_BANK0
     movs r1, #1
-    lsls r1, r1, #8     // load a 1 into bit 8
-	str r1, [r0, #0] 	// store the bitmask into the atomic register to clear register
+    lsls r1, r1, #5     // load a 1 into bit 5 (IO_BANK0)
+    str r1, [r0, #0] 	// store the bitmask into the atomic register to clear register
+    // PADS_BANK0
+    movs r1, #1
+    lsls r1, r1, #8     // load a 1 into bit 8 (PADS_BANK0)
+    str r1, [r0, #0] 	// store the bitmask into the atomic register to clear register
 
+    ////////////////////
     // Initialize GPIO 25 for output
     ldr r0, =PADS_BANK0_BASE     @ Load PADS_BANK0 base address
     movs r1, #0                   @ Clear all bits
@@ -56,6 +61,8 @@ main:
     lsls r1, #25                  @ Shift to bit 25
     str r1, [r0, #0x024]         @ Set GPIO 25 as output
 
+    ////////////////////
+    // Loop to turn on the LED, delay, then turn it off, then delay again.
 loop:
     // Turn LED on
     str r1, [r0, #0x014]         @ Set output high
