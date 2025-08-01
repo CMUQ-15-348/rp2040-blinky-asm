@@ -1,11 +1,8 @@
 # Using
 
-1. Clone pico-sdk somewhere (https://github.com/raspberrypi/pico-sdk)
-2. Set PICO_SDK_PATH to its location:  `export PICO_SDK_PATH=/where/it/is/pico-sdk`)
-3. `mkdir build`
-4. `cd build`
-5. `cmake ..`
-6. `make`
+1. `make` to build the binary.
+2. `make run` to use probe-rs to flash it to a pico and run it.
+3. The LED on the pico should start to blink.
 
-You might need some packages:  
+If you don't already have the arm compiler installed, or a basic build system, then you'll need:  
 `sudo apt install cmake python3 build-essential gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib`
