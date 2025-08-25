@@ -58,15 +58,16 @@ SECTIONS
      */
     .text : {        
         KEEP (*(.text))
-	} > FLASH	
-		
+    } > FLASH	
+
     /* Any read-only (constant) variables */
-	.rodata : {
+    .rodata : {
         . = ALIGN(4);
         *(.rodata*)
         . = ALIGN(4);
         *(SORT_BY_ALIGNMENT(SORT_BY_NAME(.flashdata*)))
         . = ALIGN(4);
+        __rodata_end__ = .;	
     } > FLASH
 
     /* Mutable variables that have initial values.
@@ -74,10 +75,9 @@ SECTIONS
     * to RAM so that they can be modified at runtime.
     */
     .data : {
-        __data_start__ = .;
-		
-		 *(.data*)
-		 . = ALIGN(4);
+        __data_start__ = .;	
+        *(.data*)
+        . = ALIGN(4);
         __data_end__ = .;
     } > RAM AT> FLASH
 
