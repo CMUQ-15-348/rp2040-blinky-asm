@@ -5,10 +5,10 @@
 
 CC=arm-none-eabi-gcc
 MACH=cortex-m0plus
-CFLAGS= -c -mcpu=$(MACH) -mthumb -std=gnu11 -Wall -O0 
-LFLAGS= -nostdlib -T memmap.ld -Wl,-Map=final.map
+CFLAGS= -g -c -mcpu=$(MACH) -mthumb -std=gnu11 -Wall -O0 
+LFLAGS= -g -nostdlib -T memmap.ld -Wl,-Map=final.map
 
-all: bs2.o main.o vector_table.o reset.o
+all: bs2.o main.o vector_table.o reset.o main.elf
 
 main.o: main.S
 	$(CC) $(CFLAGS) -o $@ $^
